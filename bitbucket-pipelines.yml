@@ -1,0 +1,20 @@
+#  Template NodeJS build
+
+#  This template allows you to validate your NodeJS code.
+#  The workflow allows running tests and code linting on the default branch.
+
+image: public.ecr.aws/sam/build-nodejs20.x
+
+pipelines:
+  default:
+    - parallel:
+        - step: 
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - cd proxy-integration
+              - npm install
+              - npm update
+              - cd ../
+              - sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
