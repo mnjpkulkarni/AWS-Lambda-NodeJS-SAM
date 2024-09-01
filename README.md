@@ -2,10 +2,12 @@
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
-- proxy-integration - Code for the application's Lambda function.
-- events - Invocation events that you can use to invoke the function.
-- hello-world/tests - Unit tests for the application code. 
-- template.yaml - A template that defines the application's AWS resources.
+- **template.yaml** - An AWS CloudFormation Template that defines the application's AWS resources, which is Lambda Proxy Integration with API Gateway.
+- **proxy-integration** - Code for the application's Lambda function.
+- **events** - Invocation events that you can use to invoke the function.
+- **proxy-integration/tests** - Unit tests for the application code.
+
+This Lambda function is a pass-through function, which calls an External REST API provided by https://reqres.in/ 
 
 The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
 
@@ -75,16 +77,6 @@ The SAM CLI can also emulate your application's API. Use the `sam local start-ap
 LambdaProxyIntegration$ sam local start-api
 LambdaProxyIntegration$ curl http://localhost:3000/
 ```
-
-The SAM CLI reads the application template to determine the API's routes and the functions that they invoke. The `Events` property on each function's definition includes the route and method for each path.
-
-```yaml
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: get
 ```
 
 ## Add a resource to your application
