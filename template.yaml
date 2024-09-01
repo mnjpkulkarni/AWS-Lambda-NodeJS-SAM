@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Metadata:
+  Generator: former2
+Description: ''
+Resources:
+
+  LambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: ''
+      FunctionName: ProxyFunction
+      Handler: app.lambdaHandler
+      Architectures:
+        - x86_64
+      CodeUri: proxy-integration/
+      MemorySize: 512
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/service-role/AquaventureLambdaForContentStack-role-jwhuw8oh
+      Runtime: nodejs20.x
+      Timeout: 300
+
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ProxyAPI
+      ApiKeySourceType: HEADER
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  ApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters: {}
+      MethodResponses:
+        - ResponseModels:
+            application/json: Empty
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+          StatusCode: '200'
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResource
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,access_token,api_key'''
+              method.response.header.Access-Control-Allow-Methods: '''DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            StatusCode: '200'
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        TimeoutInMillis: 29000
+        Type: MOCK
+
+  ApiGatewayMethod2:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters:
+        method.request.path.proxy: true
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResource
+        ContentHandling: CONVERT_TO_TEXT
+        Credentials: !Sub arn:aws:iam::${AWS::AccountId}:role/AquaventureAPIGatewayRole
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseTemplates: {}
+            StatusCode: '200'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations
+
+  ApiGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      PathPart: '{proxy+}'
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+
+  Deployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    DependsOn: 
+       - ApiGatewayMethod
+       - ApiGatewayMethod2
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      Description: Dev deployment
+      StageName: dev
+    
