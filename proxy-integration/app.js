@@ -68,7 +68,7 @@ exports.lambdaHandler = async (event, context) => {
               hostname: baseURL,
               port: 443,
               path: '/api/users?page=2',
-              method: 'GET'
+              method: jsonInput.httpMethod
           };
   
   const req = https.request(options, (res) => {

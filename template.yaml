@@ -15,7 +15,7 @@ Resources:
         - x86_64
       CodeUri: proxy-integration/
       MemorySize: 512
-      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/service-role/AquaventureLambdaForContentStack-role-jwhuw8oh
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/  //Enter your Lambda Function Role
       Runtime: nodejs20.x
       Timeout: 300
 
@@ -72,7 +72,7 @@ Resources:
       Integration:
         CacheNamespace: !Ref ApiGatewayResource
         ContentHandling: CONVERT_TO_TEXT
-        Credentials: !Sub arn:aws:iam::${AWS::AccountId}:role/AquaventureAPIGatewayRole
+        Credentials: !Sub arn:aws:iam::${AWS::AccountId}:role/ //Enter your API Gateway Role
         IntegrationHttpMethod: POST
         IntegrationResponses:
           - ResponseTemplates: {}
